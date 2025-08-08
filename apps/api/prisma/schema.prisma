@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum AuctionStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  bids      Bid[]
+}
+
+model Auction {
+  id           Int            @id @default(autoincrement())
+  title        String
+  description  String
+  imagePath    String?
+  status       AuctionStatus @default(DRAFT)
+  startPrice   Decimal
+  minIncrement Decimal
+  startAt      DateTime
+  endAt        DateTime
+  createdAt    DateTime @default(now())
+  state        AuctionState?
+  bids         Bid[]
+}
+
+model AuctionState {
+  auctionId       Int     @id
+  currentPrice    Decimal
+  currentLeaderId Int?
+  endsAt          DateTime
+  version         Int      @default(1)
+  auction         Auction  @relation(fields: [auctionId], references: [id])
+  leader          User?    @relation(fields: [currentLeaderId], references: [id])
+}
+
+model Bid {
+  id        Int      @id @default(autoincrement())
+  auctionId Int
+  userId    Int
+  amount    Decimal
+  createdAt DateTime @default(now())
+  auction   Auction  @relation(fields: [auctionId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  entityType String
+  entityId  Int
+  details   Json
+  ip        String
+  ua        String
+  createdAt DateTime @default(now())
+}
