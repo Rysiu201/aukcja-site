@@ -3,6 +3,3 @@ node_modules
 .env.*
 !.env.example
 uploads
-.nuxt
-.output
-dist
